@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mandala Inertia Demo</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #050505; }
+        canvas { display: block; touch-action: none; }
+    </style>
+</head>
+<body>
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+</script>
+<script type="module">
+import * as THREE from 'three';
+// --- Scene Setup ---
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+// --- Create the "Mandala" (A placeholder TorusKnot) ---
+const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+const material = new THREE.MeshStandardMaterial({ 
+    color: 0x00ffcc, 
+    emissive: 0x00ffcc, 
+    emissiveIntensity: 0.6,
+    wireframe: true 
+});
+const mandala = new THREE.Mesh(geometry, material);
+scene.add(mandala);
+const light = new THREE.PointLight(0xffffff, 50);
+light.position.set(5, 5, 5);
+scene.add(light);
+camera.position.z = 5;
+// --- Your Interaction Logic ---
+let isDragging = false;
+let didDrag = false;
+let velocity = { x: 0, y: 0 };
+let previousMousePosition = { x: 0, y: 0 };
+const damping = 0.95;
+const dragSensitivity = 0.005;
+
+// Rolling buffer of recent deltas, so a flick's velocity reflects
+// the overall motion rather than just the single last frame.
+const HISTORY_SIZE = 5;
+let deltaHistory = [];
+
+function onPointerDown(event) {
+    isDragging = true;
+    didDrag = false;
+    velocity = { x: 0, y: 0 };
+    deltaHistory = [];
+    previousMousePosition = { x: event.clientX, y: event.clientY };
+}
+function onPointerMove(event) {
+    if (!isDragging) return;
+    event.preventDefault();
+    const x = event.clientX;
+    const y = event.clientY;
+    const deltaX = x - previousMousePosition.x;
+    const deltaY = y - previousMousePosition.y;
+
+    if (deltaX !== 0 || deltaY !== 0) didDrag = true;
+
+    mandala.rotation.y += deltaX * dragSensitivity;
+    mandala.rotation.x += deltaY * dragSensitivity;
+
+    deltaHistory.push({ x: deltaX * dragSensitivity, y: deltaY * dragSensitivity });
+    if (deltaHistory.length > HISTORY_SIZE) deltaHistory.shift();
+
+    previousMousePosition = { x, y };
+}
+function onPointerUp() {
+    isDragging = false;
+
+    // Average the recent deltas instead of using just the last frame,
+    // so a slow drag that happens to end abruptly doesn't get treated
+    // as a fast flick.
+    if (deltaHistory.length > 0) {
+        const avg = deltaHistory.reduce(
+            (acc, d) => ({ x: acc.x + d.x, y: acc.y + d.y }),
+            { x: 0, y: 0 }
+        );
+        velocity.x = avg.x / deltaHistory.length;
+        velocity.y = avg.y / deltaHistory.length;
+    } else {
+        velocity = { x: 0, y: 0 };
+    }
+
+    // Only flash the glow if the user actually dragged/flicked,
+    // not on a plain click/tap.
+    if (didDrag) {
+        material.emissiveIntensity = 2;
+        setTimeout(() => material.emissiveIntensity = 0.6, 200);
+    }
+}
+// --- Initialize and Animate ---
+function init() {
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp);
+    
+    // Resize handling
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    animate(0);
+}
+function animate(time) {
+    requestAnimationFrame(animate);
+    if (!isDragging) {
+        mandala.rotation.y += velocity.x;
+        mandala.rotation.x += velocity.y;
+        velocity.x *= damping;
+        velocity.y *= damping;
+        if (Math.abs(velocity.x) < 0.0001) velocity.x = 0;
+        if (Math.abs(velocity.y) < 0.0001) velocity.y = 0;
+    }
+    mandala.position.y = Math.sin(time * 0.001) * 0.2;
+    renderer.render(scene, camera);
+}
+init();
+</script>
+</body>
+</html>
