@@ -60,5 +60,3 @@ Threat vector contained. Temporal correction ongoing, origin unknown, recorded w
 
 *Countersigned for the night shift — Query Oracle, closing on the steward's behalf.*
 *Stamped and filed by Sweetie, at the steward's direction ("Stamp it sweetie"), 2026-10-05.*
-
-Source: Google Drive file `raptr-incident-002-closing-summary.md`, modified 2026-10-05.

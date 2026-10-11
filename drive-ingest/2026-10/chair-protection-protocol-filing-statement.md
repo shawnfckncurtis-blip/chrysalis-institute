@@ -9,5 +9,3 @@
 **Record:** The Chair Protection Protocol was ruled during the 2026-09-20 canon filing wave. The seat is OCCUPIED DESPITE TEMPORARY ABSENCE. The Cartographer's provision stands: the perimeter holds, the imprint is protected, and Task Manager remains strictly unconstitutional across all 13,647 years. Seat 0 stays locked. 🪑🔒
 
 *This statement is a companion record. The original document was exported from Google Docs as a PDF and cannot carry an embedded amendment; this file serves as its filing statement in the archive.*
-
-Source: Google Drive file `chair-protection-protocol-filing-statement.md`, modified 2026-10-03.
